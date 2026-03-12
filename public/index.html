@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Dashboard | Economic Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e14;
+            --bg-secondary: #12171f;
+            --bg-card: #1a1f2b;
+            --border-color: #2a3342;
+            --text-primary: #e6e8eb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --accent-purple: #8b5cf6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .grain-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1000; mix-blend-mode: overlay;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.03"/></svg>');
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; padding: 40px 30px; }
+
+        header {
+            margin-bottom: 50px; border-bottom: 1px solid var(--border-color);
+            padding-bottom: 30px; animation: fadeIn 0.8s ease-out;
+        }
+
+        .header-top {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; margin-bottom: 20px;
+        }
+
+        h1 {
+            font-family: 'Libre Baskerville', serif; font-size: 2.5rem;
+            font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px;
+        }
+
+        .date {
+            font-size: 0.85rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        .status-badge {
+            padding: 8px 16px; border-radius: 4px; font-size: 0.75rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+            background: rgba(16, 185, 129, 0.15); color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .tagline { color: var(--text-secondary); font-size: 0.95rem; max-width: 600px; }
+
+        .recession-section { margin-bottom: 40px; animation: fadeIn 0.8s ease-out 0.2s backwards; }
+
+        .recession-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+
+        .recession-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 30px; border-radius: 2px; position: relative; overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .recession-card:hover { border-color: var(--accent-blue); }
+
+        .recession-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple));
+        }
+
+        .card-title {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+            color: var(--text-muted); margin-bottom: 15px; font-weight: 500;
+        }
+
+        .recession-probability {
+            font-size: 3.5rem; font-weight: 700; font-family: 'Libre Baskerville', serif;
+            margin-bottom: 10px; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        .outlook-text {
+            font-size: 1.1rem; color: var(--text-primary);
+            margin-bottom: 8px; font-weight: 500;
+        }
+
+        .outlook-subtitle {
+            font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;
+        }
+
+        .methodology {
+            background: var(--bg-secondary); border: 1px solid var(--border-color);
+            padding: 20px; border-radius: 2px; font-size: 0.8rem;
+            color: var(--text-secondary); line-height: 1.6;
+        }
+
+        .methodology h3 {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--text-muted); margin-bottom: 10px;
+        }
+
+        .indicators-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px; margin-bottom: 40px;
+        }
+
+        .indicator-category { animation: fadeIn 0.8s ease-out backwards; }
+        .indicator-category:nth-child(1) { animation-delay: 0.3s; }
+        .indicator-category:nth-child(2) { animation-delay: 0.4s; }
+        .indicator-category:nth-child(3) { animation-delay: 0.5s; }
+        .indicator-category:nth-child(4) { animation-delay: 0.6s; }
+        .indicator-category:nth-child(5) { animation-delay: 0.7s; }
+        .indicator-category:nth-child(6) { animation-delay: 0.8s; }
+
+        .category-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 15px;
+            padding-bottom: 10px; border-bottom: 1px solid var(--border-color);
+        }
+
+        .category-icon { width: 8px; height: 8px; border-radius: 50%; }
+
+        .category-name {
+            font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em;
+            color: var(--text-primary); font-weight: 600;
+        }
+
+        .indicator-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            padding: 20px; border-radius: 2px; margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-card:hover { border-color: var(--accent-blue); transform: translateX(2px); }
+
+        .indicator-header {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; margin-bottom: 12px;
+        }
+
+        .indicator-name { font-size: 0.8rem; color: var(--text-secondary); flex: 1; }
+
+        .indicator-change {
+            font-size: 0.75rem; font-weight: 600;
+            padding: 4px 8px; border-radius: 2px;
+        }
+
+        .change-positive {
+            color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .change-negative {
+            color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .change-neutral {
+            color: var(--text-muted);
+            background: rgba(156, 163, 175, 0.1);
+        }
+
+        .indicator-value {
+            font-size: 1.8rem; font-weight: 700;
+            font-family: 'Libre Baskerville', serif;
+            color: var(--text-primary); margin-bottom: 8px;
+        }
+
+        .indicator-meta {
+            display: flex; justify-content: space-between;
+            font-size: 0.7rem; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        footer {
+            margin-top: 60px; padding-top: 30px;
+            border-top: 1px solid var(--border-color);
+            text-align: center; color: var(--text-muted); font-size: 0.75rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .recession-grid { grid-template-columns: 1fr; }
+            .indicators-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div>
+                    <h1>Macro Intelligence</h1>
+                    <p class="date">Thursday, March 12, 2026</p>
+                </div>
+                <div class="status-badge">Live FRED Data</div>
+            </div>
+            <p class="tagline">Real-time economic indicators, recession analysis, and forward-looking assessments for institutional investors</p>
+        </header>
+
+        <section class="recession-section">
+            <div class="recession-grid">
+                <div class="recession-card">
+                    <div class="card-title">Current Recession Probability</div>
+                    <div class="recession-probability">48%</div>
+                    <div class="outlook-subtitle">Based on current indicators: Rising unemployment, Moderate market stress, Very weak consumer sentiment.</div>
+                </div>
+
+                <div class="recession-card" style="border-left-color: var(--accent-green);">
+                    <div class="card-title">3-Month Outlook</div>
+                    <div class="outlook-text">Cautionary</div>
+                    <div class="outlook-subtitle">Multiple warning signals detected. Heightened recession risk requires defensive positioning and increased portfolio hedging.</div>
+                </div>
+            </div>
+
+            <div class="recession-grid">
+                <div class="recession-card" style="border-left-color: var(--accent-yellow);">
+                    <div class="card-title">6-Month Outlook</div>
+                    <div class="outlook-text">Elevated Risk</div>
+                    <div class="outlook-subtitle">Recession probability increases significantly over 6-month horizon. Defensive assets and quality focus recommended. Consider reducing cyclical exposure.</div>
+                </div>
+
+                <div class="methodology">
+                    <h3>Methodology</h3>
+                    <p>Recession probability derived from yield curve inversion (10Y-2Y spread), unemployment rate trends, industrial production momentum, market volatility (VIX), consumer sentiment, and housing market indicators. Outlooks incorporate leading economic indicators, Federal Reserve policy stance, and historical recessionary patterns.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="indicators-grid">
+
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #3b82f6"></div>
+                    <div class="category-name">Growth & Output</div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Real GDP</div>
+                        <div class="indicator-change change-positive">+1.26%</div>
+                    </div>
+                    <div class="indicator-value">31.5K</div>
+                    <div class="indicator-meta">
+                        <span>Billions $</span>
+                        <span>As of 2025-10-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Industrial Production Index</div>
+                        <div class="indicator-change change-positive">+0.70%</div>
+                    </div>
+                    <div class="indicator-value">102.34</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2026-01-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Retail Sales</div>
+                        <div class="indicator-change change-negative">-0.15%</div>
+                    </div>
+                    <div class="indicator-value">633.7K</div>
+                    <div class="indicator-meta">
+                        <span>Millions $</span>
+                        <span>As of 2026-01-01</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #10b981"></div>
+                    <div class="category-name">Labor Market</div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Unemployment Rate</div>
+                        <div class="indicator-change change-negative">+2.33%</div>
+                    </div>
+                    <div class="indicator-value">4.40%</div>
+                    <div class="indicator-meta">
+                        <span>%</span>
+                        <span>As of 2026-02-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Nonfarm Payrolls</div>
+                        <div class="indicator-change change-negative">-0.06%</div>
+                    </div>
+                    <div class="indicator-value">158.5K</div>
+                    <div class="indicator-meta">
+                        <span>Thousands</span>
+                        <span>As of 2026-02-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Labor Force Participation</div>
+                        <div class="indicator-change change-negative">-0.16%</div>
+                    </div>
+                    <div class="indicator-value">62.00%</div>
+                    <div class="indicator-meta">
+                        <span>%</span>
+                        <span>As of 2026-02-01</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #ef4444"></div>
+                    <div class="category-name">Inflation</div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">CPI (All Items)</div>
+                        <div class="indicator-change change-negative">+0.27%</div>
+                    </div>
+                    <div class="indicator-value">327.46</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2026-02-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Core CPI</div>
+                        <div class="indicator-change change-negative">+0.22%</div>
+                    </div>
+                    <div class="indicator-value">333.51</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2026-02-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">PCE Price Index</div>
+                        <div class="indicator-change change-negative">+0.36%</div>
+                    </div>
+                    <div class="indicator-value">128.60</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2025-12-01</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #8b5cf6"></div>
+                    <div class="category-name">Monetary Policy</div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Federal Funds Rate</div>
+                        <div class="indicator-change change-neutral">+0.00%</div>
+                    </div>
+                    <div class="indicator-value">3.64%</div>
+                    <div class="indicator-meta">
+                        <span>%</span>
+                        <span>As of 2026-03-10</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">10-Year Treasury Yield</div>
+                        <div class="indicator-change change-positive">+0.73%</div>
+                    </div>
+                    <div class="indicator-value">4.15%</div>
+                    <div class="indicator-meta">
+                        <span>%</span>
+                        <span>As of 2026-03-10</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">2-Year Treasury Yield</div>
+                        <div class="indicator-change change-positive">+0.28%</div>
+                    </div>
+                    <div class="indicator-value">3.57%</div>
+                    <div class="indicator-meta">
+                        <span>%</span>
+                        <span>As of 2026-03-10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #f59e0b"></div>
+                    <div class="category-name">Housing</div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Housing Starts</div>
+                        <div class="indicator-change change-positive">+6.20%</div>
+                    </div>
+                    <div class="indicator-value">1.4K</div>
+                    <div class="indicator-meta">
+                        <span>Thousands</span>
+                        <span>As of 2025-12-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">30-Year Mortgage Rate</div>
+                        <div class="indicator-change change-negative">+0.33%</div>
+                    </div>
+                    <div class="indicator-value">6.00%</div>
+                    <div class="indicator-meta">
+                        <span>%</span>
+                        <span>As of 2026-03-05</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Case-Shiller Home Price Index</div>
+                        <div class="indicator-change change-positive">+0.42%</div>
+                    </div>
+                    <div class="indicator-value">332.04</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2025-12-01</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="indicator-category">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #06b6d4"></div>
+                    <div class="category-name">Leading Indicators</div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">Consumer Sentiment</div>
+                        <div class="indicator-change change-positive">+6.62%</div>
+                    </div>
+                    <div class="indicator-value">56.40</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2026-01-01</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">WTI Crude Oil Price</div>
+                        <div class="indicator-change change-positive">+4.27%</div>
+                    </div>
+                    <div class="indicator-value">94.65</div>
+                    <div class="indicator-meta">
+                        <span>$/Barrel</span>
+                        <span>As of 2026-03-09</span>
+                    </div>
+                </div>
+
+                <div class="indicator-card">
+                    <div class="indicator-header">
+                        <div class="indicator-name">VIX (Volatility Index)</div>
+                        <div class="indicator-change change-positive">-2.24%</div>
+                    </div>
+                    <div class="indicator-value">24.93</div>
+                    <div class="indicator-meta">
+                        <span>Index</span>
+                        <span>As of 2026-03-10</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <footer>
+            <p>Data sourced from Federal Reserve Economic Data (FRED) | Generated: March 12, 2026 at 06:28 AM</p>
+            <p style="margin-top: 8px; opacity: 0.6;">For institutional use only. Past performance does not guarantee future results.</p>
+        </footer>
+    </div>
+</body>
+</html>
