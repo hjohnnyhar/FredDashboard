@@ -3,7 +3,7 @@ name: Refresh FRED Dashboard
 on:
   schedule:
     # Runs daily at 8:00 AM UTC (after most FRED data updates)
-    - cron: '0 8 * * *'
+    - cron: '0 9 * * 1'
   workflow_dispatch: # Allow manual trigger
 
 permissions:
